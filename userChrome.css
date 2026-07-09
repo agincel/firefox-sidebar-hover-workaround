@@ -1,0 +1,88 @@
+/*
+ * userChrome.css - Force sidebar to stay collapsed unless actually hovered.
+ * Hacky workaround for: https://bugzilla.mozilla.org/show_bug.cgi?id=1985692
+ *
+ * We apply styling to force the 'collapsed' behavior of the sidebar at all times.
+ * We then override some of these with CSS :hover or :active states, which only
+ * kick in in the situation you expect (your cursor is *actually* over the sidebar).
+ *
+ * I'm sure for some these there's a nicer way than what I did of just sorta eyeballing
+ * it on my personal machine, but that's what PRs are for :)
+ */
+body {
+  /* The sidebar itself and its descendants */
+  & #sidebar-main {
+    transition-delay: 100ms !important;
+    transition: width 0ms step-start !important;
+
+    width: 58px !important;           /* As of time of writing 58px is the collapsed size. Tried using var(--sidebar-launcher-collapsed-width) and it suddenly returned 0px so I'm prolly just being dumb */
+    will-change: width !important;    /* Inform the browser this property will change, which apparently makes it more efficient so shrug guess so */
+    border: none !important;          /* Unhovered it doesn't have a border, so it shouldn't have one now either */
+
+    /* Handle Tabs */
+    & #tabbrowser-tabs {
+      & image.tab-close-button {
+        opacity: 0; /* Hide the close button */
+      }
+
+      & label.toolbarbutton-text {
+        display: none !important; /* Don't show the text 'New Tab' */
+      }
+
+      /* Don't let the New Tab plus icon shift - keep the same width as normal. */
+      & #tabs-newtab-button {
+        width: var(--tab-collapsed-background-width) !important;
+      }
+
+      /* Ensure tab backgrounds don't expand past their expected width when collapsed. */
+      & .tab-background {
+        width: var(--tab-collapsed-background-width);
+      }
+    }
+  }
+
+  /* The sidebar-button isn't a child of the sidebar, which is why this all is under body {}
+   * We force the button to keep using the 'collapsed' image, and hide the highlight. */
+  & #sidebar-button {
+    list-style-image: url("chrome://browser/skin/sidebar-collapsed.svg") !important;
+
+    & .toolbarbutton-badge-stack {
+      background-color: transparent !important;
+    }
+  }
+}
+
+/* If hovered or active, the sidebar is expanded */
+body:has(#sidebar-main:hover, #sidebar-main:active) {
+  /* Ensure the sidebar exhibits the right behavior when expanded. */
+  & #sidebar-main {
+    width: 230px !important;
+
+    & #tabbrowser-tabs {
+      & image.tab-close-button {
+        opacity:1;
+      }
+
+      & label.toolbarbutton-text {
+        display: flex !important; /* Show the text 'New Tab' */
+        margin: 0px !important;
+        padding-inline-start: 5.5px !important; /* I gotta be so fr I don't get how these CSS vars work. 5.5 is the number to use today to match the expanded behavior. */
+      }
+
+      /* Revert the override. */
+      & #tabs-newtab-button {
+        width: 100% !important;
+      }
+
+      /* Revert the override. */
+      & .tab-background {
+        width: 92% !important;
+      }
+    }
+  }
+
+  /* Ensure the sidebar-button shows the right image after all. */
+  & #sidebar-button {
+    list-style-image: url("chrome://browser/skin/sidebar-expanded.svg") !important;
+  }
+}
