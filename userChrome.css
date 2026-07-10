@@ -12,21 +12,20 @@
 body {
   /* The sidebar itself and its descendants */
   & #sidebar-main {
-    transition-delay: 100ms !important;
-    transition: width 0ms step-start !important;
-
     width: 58px !important;           /* As of time of writing 58px is the collapsed size. Tried using var(--sidebar-launcher-collapsed-width) and it suddenly returned 0px so I'm prolly just being dumb */
     will-change: width !important;    /* Inform the browser this property will change, which apparently makes it more efficient so shrug guess so */
     border: none !important;          /* Unhovered it doesn't have a border, so it shouldn't have one now either */
 
     /* Handle Tabs */
     & #tabbrowser-tabs {
+      /* Hide the close button */
       & image.tab-close-button {
-        opacity: 0; /* Hide the close button */
+        opacity: 0;
       }
 
+      /* Don't show the text 'New Tab' */
       & label.toolbarbutton-text {
-        display: none !important; /* Don't show the text 'New Tab' */
+        display: none !important; 
       }
 
       /* Don't let the New Tab plus icon shift - keep the same width as normal. */
@@ -56,17 +55,35 @@ body {
 body:has(#sidebar-main:hover, #sidebar-main:active) {
   /* Ensure the sidebar exhibits the right behavior when expanded. */
   & #sidebar-main {
-    width: 230px !important;
+    /* Bring the sidebar out to its full width, but use margin-inline-end to lie to the layout about its actual width
+     * This combined with the higher z-index ensures that no layout changes occur. */
+    width: 250px !important;
+    margin-inline-end: -192px !important;    /* Sidebar is 58px. 250 - 58 = 192. Doing 250 - 192 means the final layout is the same 58px, even expanded. */
+    z-index: 9999 !important;                /* Ensures the sidebar draw above everything else. */
+
+    /* Ensure the expanded sidebar uses the dark theme color. Light theme just uses 'white'. */
+    background-color: rgb(28, 27, 34); 
+
+    /* Ensure the vertical tab labels are positioned correctly. */
+    & .tab-label-container {
+      display: flex !important;
+      margin-left: 8px;
+    }
+
+    /* Make the tab image not take up more space than it should. */
+    & .tab-icon-image {
+      margin-inline-end: 0px !important; 
+    }
 
     & #tabbrowser-tabs {
+      /* Make sure the tab close button is visible. */
       & image.tab-close-button {
         opacity:1;
       }
 
+      /* Show the 'New Tab' text. */
       & label.toolbarbutton-text {
-        display: flex !important; /* Show the text 'New Tab' */
-        margin: 0px !important;
-        padding-inline-start: 5.5px !important; /* I gotta be so fr I don't get how these CSS vars work. 5.5 is the number to use today to match the expanded behavior. */
+        display: flex !important; 
       }
 
       /* Revert the override. */
@@ -81,8 +98,12 @@ body:has(#sidebar-main:hover, #sidebar-main:active) {
     }
   }
 
-  /* Ensure the sidebar-button shows the right image after all. */
+  /* Ensure the sidebar-button shows the correct image after all. */
   & #sidebar-button {
     list-style-image: url("chrome://browser/skin/sidebar-expanded.svg") !important;
+
+    & .toolbarbutton-badge-stack {
+      background-color: rgba(207, 207, 216, 0.4) !important; /* This is for dark theme. Light mode is just rgb(207, 207, 216) */
+    }
   }
 }
